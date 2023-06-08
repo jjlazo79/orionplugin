@@ -56,3 +56,4 @@ node_modules/
 *.sql
 *.tar.gz
 *.zip
+#/wp-content/themes
