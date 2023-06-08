@@ -1,0 +1,116 @@
+<?php
+
+/**
+ * Orionplugin
+ *
+ * @subpackage        WordPress
+ * @package           Orionplugin
+ * @author            Jose Lazo
+ * @copyright         2023 Jose Lazo
+ * @license           GPL-2.0-or-later
+ *
+ * Plugin Name:       Orion Plugin
+ * Plugin URI:        https://github.com/jjlazo79/orion-plugin
+ * Description:       Plugin de funciones para Orion
+ * Version:           1.0.0
+ * Requires at least: 5.2
+ * Requires PHP:      7.0
+ * Author:            Jose Lazo
+ * Author URI:        http://www.joselazo.es/
+ * License:           GPL v2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       orionplugin
+ * Domain Path:       /languages
+ */
+
+// Exit if accessed directly
+defined('ABSPATH') or die('Bad dog. No biscuit!');
+// Define some constants plugin
+define('ORION_PLUGIN_DIR_PATH', plugin_dir_path(__FILE__));
+define('ORION_PLUGIN_DIR_URL', plugin_dir_url(__FILE__));
+define('ORION_VERSION', '1.1.0');
+define('ORION_TEXT_DOMAIN', 'orionplugin');
+
+// Activation, deactivation and uninstall plugin hooks
+register_activation_hook(__FILE__, array('OrionPlugin', 'orion_plugin_activation'));
+register_deactivation_hook(__FILE__,  array('OrionPlugin',  'orion_plugin_deactivation'));
+register_uninstall_hook(__FILE__,  array('OrionPlugin',  'orion_plugin_uninstall'));
+
+// Initialize the plugin
+$orion_plugin = new OrionPlugin();
+
+class OrionPlugin
+{
+
+	/**
+	 * Initializes the plugin.
+	 *
+	 * To keep the initialization fast, only add filter and action
+	 * hooks in the constructor.
+	 */
+	public function __construct()
+	{
+		// Include classes
+		include_once 'classes/class-OrionShortcodes.php';
+		include_once 'classes/class-OrionFunctions.php';
+		//Actions
+		add_action('init', array($this, 'orion_localize_scripts'));
+		add_action('plugins_loaded', array('OrionShortcodes', 'get_instance'));
+		add_action('plugins_loaded', array('OrionFunctions', 'get_instance'));
+	}
+
+	/**
+	 * Activation hook
+	 *
+	 * @return void
+	 */
+	public static function orion_plugin_activation()
+	{
+		if (!current_user_can('activate_plugins')) return;
+
+		// Clear the permalinks after the post type has been registered.
+		flush_rewrite_rules();
+		add_option('Orion_plugin_do_activation_redirect', true);
+	}
+
+	/**
+	 * Deactivation hook
+	 *
+	 * @return void
+	 */
+	public static function orion_plugin_deactivation()
+	{
+		// Delete options
+		delete_option('Orion_plugin_do_activation_redirect');
+
+		// Unregister the post type and taxonomies, so the rules are no longer in memory.
+		// unregister_post_type('personas');
+
+		// Clear the permalinks to remove our post type's rules from the database.
+		flush_rewrite_rules();
+	}
+
+	/**
+	 * Unistall hook
+	 *
+	 * @return void
+	 */
+	public static function orion_plugin_uninstall()
+	{
+		// Delete options
+		delete_option('Orion_plugin_do_activation_redirect');
+	}
+
+	/**
+	 * Localize path folder
+	 *
+	 * @return void
+	 */
+	public function orion_localize_scripts()
+	{
+		$domain = ORION_TEXT_DOMAIN;
+		$locale = apply_filters('plugin_locale', get_locale(), $domain);
+		load_textdomain($domain, trailingslashit(WP_LANG_DIR) . $domain . '/' . $domain . '-' . $locale . '.mo');
+		load_plugin_textdomain($domain, FALSE, basename(dirname(__FILE__)) . '/languages');
+	}
+}

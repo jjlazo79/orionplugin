@@ -1,0 +1,64 @@
+.woocommerce-tabs #tab-description,
+.woocommerce-tabs #tab-additional_information,
+.woocommerce-tabs #tab-certifications,
+.woocommerce-tabs #tab-support,
+.woocommerce-tabs #tab-compatibility {
+    background-color: #EEECED;
+}
+
+.document a:before {
+    font-family: "Font Awesome 5 Free"; 
+    content: "\f1c1 ";
+    display: inline-block;
+    padding-right: 10px;
+}
+
+.media {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: start;
+    align-items: flex-start;
+}
+
+.aplicacion .media {
+    width: 31%;
+    margin-right: 2%;
+    margin-bottom: 1rem;
+}
+
+.media-body {
+    -ms-flex: 1;
+    flex: 1;
+}
+
+.fondo-gris-claro-2 {
+    background-color: #f9f9f9;
+}
+
+.align-self-center {
+    -ms-flex-item-align: center !important;
+    align-self: center !important;
+}
+
+.row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.mr-2, .mx-2 {
+    margin-right: 0.5rem !important;
+}
+
+.p-2 {
+    padding: 0.5rem !important;
+}
+
+@media (max-width: 768px) {
+    .aplicacion .media {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
