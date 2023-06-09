@@ -68,6 +68,11 @@ class OrionPlugin
 	{
 		if (!current_user_can('activate_plugins')) return;
 
+		// Add new column
+		if (in_array('ameliabooking/ameliabooking.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+			$new_column = OrionPlugin::add_new_column();
+		}
+
 		// Clear the permalinks after the post type has been registered.
 		flush_rewrite_rules();
 		add_option('Orion_plugin_do_activation_redirect', true);
@@ -99,6 +104,55 @@ class OrionPlugin
 	{
 		// Delete options
 		delete_option('Orion_plugin_do_activation_redirect');
+		// Drop plugin column
+		$drop_column = OrionPlugin::drop_new_column();
+	}
+
+	/**
+	 * Add column to data base
+	 *
+	 * @return void
+	 */
+	public static function add_new_column()
+	{
+		global $wpdb;
+		global $jal_db_version;
+
+		add_option('jal_db_version', $jal_db_version);
+
+		$table_name = $wpdb->prefix . 'amelia_users';
+		$row        = $wpdb->get_results("SELECT COLUMN_NAME
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = '$table_name'
+		AND COLUMN_NAME = 'coach_category_id'");
+
+		if (empty($row)) {
+			$wpdb->query("ALTER TABLE `$table_name` ADD coach_category_id mediumint(9) NOT NULL");
+		}
+	}
+
+	/**
+	 * Drop plugin column
+	 *
+	 * @return void
+	 */
+	public static function drop_new_column()
+	{
+		global $wpdb;
+		// $table_name = $wpdb->prefix . 'amelia_users';
+		// $sql = "DROP TABLE IF EXISTS $table_name";
+		// $wpdb->query($sql);
+
+		$ameliausers_table_name = $wpdb->prefix . 'amelia_users';
+		$row                    = $wpdb->get_results("SELECT COLUMN_NAME
+		FROM INFORMATION_SCHEMA.COLUMNS
+		WHERE TABLE_NAME = '$ameliausers_table_name'
+		AND COLUMN_NAME = 'coach_category_id'");
+
+		if (!empty($row)) {
+			$wpdb->query("ALTER TABLE `$ameliausers_table_name` DROP COLUMN coach_category_id");
+		}
+		delete_option('jal_db_version');
 	}
 
 	/**
