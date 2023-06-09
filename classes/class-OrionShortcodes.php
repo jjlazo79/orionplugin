@@ -44,41 +44,38 @@ class OrionShortcodes
     {
         // Add shortcode
         add_shortcode(
-            'aplications_data',
-            array($this, 'orion_aplications_shortcode_handler')
+            'employees_list',
+            array($this, 'orion_employees_list_shortcode_handler')
         );
     }
 
     /**
-     * Register shortcode artículo destacado
+     * Register shortcode employees_list
      */
-    public function orion_aplications_shortcode_handler($atts)
+    public function orion_employees_list_shortcode_handler($atts)
     {
-        // Only in shortcode page insert
-        // OrionShortcodes::orion_enqueue_front_scripts();
+        global $wpdb;
 
-        $orion_aplications_options = get_post_meta(get_the_ID(), '_orion_aplications_options', true) ? get_post_meta(get_the_ID(), '_orion_aplications_options', true) : array();
+        // Only in shortcode page insert
+        OrionShortcodes::orion_enqueue_front_scripts();
+
+        $default = array(
+            'slider'     => false,
+            'column'     => 4,
+            'categories' => 'all'
+        );
+
+        $a = shortcode_atts($default, $atts);
+
+        $coaches = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider'");
+
 
         ob_start();
 
-        if (!empty($orion_aplications_options)) {
-            echo '<h3 style="
-                    color: var(--e-global-color-primary );
-                    font-family: var(--e-global-typography-primary-font-family ), Sans-serif;
-                    font-weight: var(--e-global-typography-primary-font-weight );
-                    margin-bottom: 30px;
-                ">' . __('Aplications', ORION_TEXT_DOMAIN) . '</h3>';
-            echo '<div class="aplicacion row">';
-            foreach ($orion_aplications_options as $aplication) {
-                $first_word = strtok($aplication, " ");
-                $img_uri    = sanitize_title($first_word);
-                echo '<div class="media fondo-gris-claro-2 p-2 ">
-                    <img class="mr-2 align-self-center" src="https://orion.es/wp-content/uploads/2018/01/' . $img_uri . '.png" alt="' . $aplication . '">
-                    <div class="media-body align-self-center">' . $aplication . '</div>
-                </div>';
-            }
-            echo '</div>';
-        }
+        echo 'listado de coaches';
+        echo '<pre>';
+        var_dump($coaches);
+        echo '</pre>';
 
         $output = ob_get_clean();
 
