@@ -12,7 +12,7 @@
  * Plugin Name:       Orion Plugin
  * Plugin URI:        https://github.com/jjlazo79/orion-plugin
  * Description:       Plugin de funciones para Orion
- * Version:           1.0.0
+ * Version:           1.1.1
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * Author:            Jose Lazo
@@ -28,7 +28,7 @@ defined('ABSPATH') or die('Bad dog. No biscuit!');
 // Define some constants plugin
 define('ORION_PLUGIN_DIR_PATH', plugin_dir_path(__FILE__));
 define('ORION_PLUGIN_DIR_URL', plugin_dir_url(__FILE__));
-define('ORION_VERSION', '1.1.0');
+define('ORION_VERSION', '1.1.1');
 define('ORION_TEXT_DOMAIN', 'orionplugin');
 
 // Activation, deactivation and uninstall plugin hooks
@@ -53,10 +53,12 @@ class OrionPlugin
 		// Include classes
 		include_once 'classes/class-OrionShortcodes.php';
 		include_once 'classes/class-OrionFunctions.php';
+		include_once 'classes/class-OrionTaxonomies.php';
 		//Actions
 		add_action('init', array($this, 'orion_localize_scripts'));
 		add_action('plugins_loaded', array('OrionShortcodes', 'get_instance'));
 		add_action('plugins_loaded', array('OrionFunctions', 'get_instance'));
+		add_action('plugins_loaded', array('OrionTaxonomies', 'get_instance'));
 	}
 
 	/**
