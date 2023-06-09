@@ -152,6 +152,11 @@ class OrionFunctions
         return $atts;
     }
 
+    /**
+     * Enqueue scripts and styles
+     *
+     * @return void
+     */
     public function orion_plugin_assets()
     {
         // Make column clickable
