@@ -25,6 +25,7 @@ Plugin de funciones y shortcodes
 
 = 1.1.2 =
 * Update amelia_user table when wp user change
+* Add coaches lists shortcode
 
 = 1.1.1 =
 * Add user taxonomy

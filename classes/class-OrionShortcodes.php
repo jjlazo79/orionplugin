@@ -44,41 +44,136 @@ class OrionShortcodes
     {
         // Add shortcode
         add_shortcode(
-            'aplications_data',
-            array($this, 'orion_aplications_shortcode_handler')
+            'employees_list',
+            array($this, 'orion_employees_list_shortcode_handler')
         );
     }
 
     /**
-     * Register shortcode artículo destacado
+     * Register shortcode employees_list
      */
-    public function orion_aplications_shortcode_handler($atts)
+    public function orion_employees_list_shortcode_handler($atts)
     {
+        global $wpdb;
+
         // Only in shortcode page insert
-        // OrionShortcodes::orion_enqueue_front_scripts();
+        OrionShortcodes::orion_enqueue_front_scripts();
 
-        $orion_aplications_options = get_post_meta(get_the_ID(), '_orion_aplications_options', true) ? get_post_meta(get_the_ID(), '_orion_aplications_options', true) : array();
+        $default = array(
+            'slider'   => 'false',
+            'type'     => '1',
+            'category' => 'all'
+        );
 
-        ob_start();
-
-        if (!empty($orion_aplications_options)) {
-            echo '<h3 style="
-                    color: var(--e-global-color-primary );
-                    font-family: var(--e-global-typography-primary-font-family ), Sans-serif;
-                    font-weight: var(--e-global-typography-primary-font-weight );
-                    margin-bottom: 30px;
-                ">' . __('Aplications', ORION_TEXT_DOMAIN) . '</h3>';
-            echo '<div class="aplicacion row">';
-            foreach ($orion_aplications_options as $aplication) {
-                $first_word = strtok($aplication, " ");
-                $img_uri    = sanitize_title($first_word);
-                echo '<div class="media fondo-gris-claro-2 p-2 ">
-                    <img class="mr-2 align-self-center" src="https://orion.es/wp-content/uploads/2018/01/' . $img_uri . '.png" alt="' . $aplication . '">
-                    <div class="media-body align-self-center">' . $aplication . '</div>
-                </div>';
-            }
-            echo '</div>';
+        $a = shortcode_atts($default, $atts);
+        $and = '';
+        if ('all' !== $a['category']) {
+            $and = " AND `coach_category_slug` LIKE '%" . $a['category'] . "%'";
         }
+
+        $coaches = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' $and");
+        // exit(var_dump($wpdb->last_query));
+        ob_start();
+        echo 'Slider: ';
+        var_dump($a['slider']);
+        echo '<br><br>Type: ';
+        var_dump($a['type']);
+        echo '<br><br>Category: ';
+        var_dump($a['category']);
+        if ('false' !== $a['slider']) {
+            # Carousel type 1 and 2
+            if ('2' !== $a['type']) {
+?>
+                <div id="wrapper">
+                    <div id="carousel" class="carousel-type-1">
+                        <div id="content">
+                            <?php foreach ($coaches as $coach) : ?>
+                                <div class="item">
+                                    <div class="item-img" style="background-image: url('<?php echo $coach->pictureFullPath; ?>');">
+                                        <span></span>
+                                    </div>
+                                    <div class="item-content">
+                                        <p><?php echo $coach->firstName . ' ' . $coach->lastName; ?></p>
+                                        <p><?php echo $coach->description; ?></p>
+                                        <a target="_blank" href="<?php echo get_author_posts_url($coach->externalId); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <button id="prev">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="none" d="M0 0h24v24H0V0z" />
+                            <path d="M15.61 7.41L14.2 6l-6 6 6 6 1.41-1.41L11.03 12l4.58-4.59z" />
+                        </svg>
+                    </button>
+                    <button id="next">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="none" d="M0 0h24v24H0V0z" />
+                            <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
+                        </svg>
+                    </button>
+                </div>
+
+            <?php
+            } else {
+            ?>
+                <div id="wrapper">
+                    <div id="carousel" class="carousel-type-2">
+                        <div id="content">
+                            <?php foreach ($coaches as $coach) : ?>
+                                <div class="item">
+                                    <div class="item-img" style="background-image: url('<?php echo $coach->pictureFullPath; ?>');">
+                                        <span></span>
+                                    </div>
+                                    <div class="item-content">
+                                        <p><?php echo $coach->firstName . ' ' . $coach->lastName; ?></p>
+                                        <p><?php echo $coach->description; ?></p>
+                                        <a target="_blank" href="<?php echo get_author_posts_url($coach->externalId); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <button id="prev">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="none" d="M0 0h24v24H0V0z" />
+                            <path d="M15.61 7.41L14.2 6l-6 6 6 6 1.41-1.41L11.03 12l4.58-4.59z" />
+                        </svg>
+                    </button>
+                    <button id="next">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="none" d="M0 0h24v24H0V0z" />
+                            <path d="M10.02 6L8.61 7.41 13.19 12l-4.58 4.59L10.02 18l6-6-6-6z" />
+                        </svg>
+                    </button>
+                </div>
+            <?php
+            }
+        } else {
+            ?> <!-- List flex -->
+            <div id="wrapper">
+                <div id="flex-list">
+                    <div id="content">
+                        <?php foreach ($coaches as $coach) : ?>
+                            <div class="item">
+                                <div class="item-img" style="background-image: url('<?php echo $coach->pictureFullPath; ?>');">
+                                    <span></span>
+                                </div>
+                                <div class="item-content">
+                                    <p><?php echo $coach->firstName . ' ' . $coach->lastName; ?></p>
+                                    <p><?php echo $coach->description; ?></p>
+                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->externalId); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+<?php
+        }
+
+
 
         $output = ob_get_clean();
 
