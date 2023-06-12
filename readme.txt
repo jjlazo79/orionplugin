@@ -23,6 +23,12 @@ Plugin de funciones y shortcodes
 
 == Changelog ==
 
+= 1.1.2 =
+* Update amelia_user table when wp user change
+
+= 1.1.1 =
+* Add user taxonomy
+
 = 1.1.0 =
 * Add shortcode parameters
 * Add custom column into amelia_users table

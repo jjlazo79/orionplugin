@@ -12,7 +12,7 @@
  * Plugin Name:       Orion Plugin
  * Plugin URI:        https://github.com/jjlazo79/orion-plugin
  * Description:       Plugin de funciones para Orion
- * Version:           1.1.1
+ * Version:           1.1.2
  * Requires at least: 5.2
  * Requires PHP:      7.0
  * Author:            Jose Lazo
@@ -28,7 +28,7 @@ defined('ABSPATH') or die('Bad dog. No biscuit!');
 // Define some constants plugin
 define('ORION_PLUGIN_DIR_PATH', plugin_dir_path(__FILE__));
 define('ORION_PLUGIN_DIR_URL', plugin_dir_url(__FILE__));
-define('ORION_VERSION', '1.1.1');
+define('ORION_VERSION', '1.1.2');
 define('ORION_TEXT_DOMAIN', 'orionplugin');
 
 // Activation, deactivation and uninstall plugin hooks
@@ -126,10 +126,10 @@ class OrionPlugin
 		$row        = $wpdb->get_results("SELECT COLUMN_NAME
 		FROM INFORMATION_SCHEMA.COLUMNS
 		WHERE TABLE_NAME = '$table_name'
-		AND COLUMN_NAME = 'coach_category_id'");
+		AND COLUMN_NAME = 'coach_category_slug'");
 
 		if (empty($row)) {
-			$wpdb->query("ALTER TABLE `$table_name` ADD coach_category_id mediumint(9) NOT NULL");
+			$wpdb->query("ALTER TABLE `$table_name` ADD coach_category_slug VARCHAR(255) NOT NULL");
 		}
 	}
 
@@ -149,10 +149,10 @@ class OrionPlugin
 		$row                    = $wpdb->get_results("SELECT COLUMN_NAME
 		FROM INFORMATION_SCHEMA.COLUMNS
 		WHERE TABLE_NAME = '$ameliausers_table_name'
-		AND COLUMN_NAME = 'coach_category_id'");
+		AND COLUMN_NAME = 'coach_category_slug'");
 
 		if (!empty($row)) {
-			$wpdb->query("ALTER TABLE `$ameliausers_table_name` DROP COLUMN coach_category_id");
+			$wpdb->query("ALTER TABLE `$ameliausers_table_name` DROP COLUMN coach_category_slug");
 		}
 		delete_option('jal_db_version');
 	}

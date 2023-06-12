@@ -56,13 +56,15 @@ class OrionFunctions
         add_action('show_user_profile', array($this, 'orion_edit_user_tipocoach_section'));
         add_action('edit_user_profile', array($this, 'orion_edit_user_tipocoach_section'));
         add_action('user_new_form', array($this, 'orion_edit_user_tipocoach_section'));
-        add_action('personal_options_update', array($this, 'orion_save_user_department_terms'));
-        add_action('edit_user_profile_update', array($this, 'orion_save_user_department_terms'));
-        add_action('user_register', array($this, 'orion_save_user_department_terms'));
+        add_action('personal_options_update', array($this, 'orion_save_user_tipocoach_terms'));
+        add_action('edit_user_profile_update', array($this, 'orion_save_user_tipocoach_terms'));
+        add_action('user_register', array($this, 'orion_save_user_tipocoach_terms'));
         // Filters
         add_filter('nav_menu_link_attributes', array($this, 'obfuscate_specific_menu_links'), 10, 3);
         add_filter('manage_edit-tipocoach_columns', array($this, 'orion_manage_tipocoach_user_column'));
+        add_filter('manage_users_columns', array($this, 'orion_manage_users_column'));
         add_filter('manage_tipocoach_custom_column', array($this, 'orion_manage_tipocoach_column'), 10, 3);
+        add_filter('manage_users_custom_column', array($this, 'orion_manage_user_column'), 10, 3);
         add_filter('sanitize_user', array($this, 'orion_disable_tipocoach_username'));
         add_filter('parent_file', array($this, 'orion_change_parent_file'));
     }
@@ -166,7 +168,7 @@ class OrionFunctions
     /**
      * Admin page for the 'tipocoach' taxonomy
      */
-    function orion_add_tipocoach_taxonomy_admin_page()
+    public function orion_add_tipocoach_taxonomy_admin_page()
     {
         $tax = get_taxonomy('tipocoach');
         add_users_page(
@@ -183,21 +185,33 @@ class OrionFunctions
      * @param array $columns
      * @return void
      */
-    function orion_manage_tipocoach_user_column($columns)
+    public function orion_manage_tipocoach_user_column($columns)
     {
         unset($columns['posts']);
-        $columns['users'] = __('Users');
+        $columns['users'] = __('Coaches', ORION_TEXT_DOMAIN);
         return $columns;
     }
 
     /**
-     * Handler columns
+     * Add custom user column
+     *
+     * @param array $columns
+     * @return void
+     */
+    public function orion_manage_users_column($columns)
+    {
+        $columns['tipocoach'] = __('Tipo Coach', ORION_TEXT_DOMAIN);
+        return $columns;
+    }
+
+    /**
+     * Handler custom taxonomy columns
      * 
      * @param string $display WP just passes an empty string here.
      * @param string $column The name of the custom column.
      * @param int $term_id The ID of the term being displayed in the table.
      */
-    function orion_manage_tipocoach_column($display, $column, $term_id)
+    public function orion_manage_tipocoach_column($display, $column, $term_id)
     {
         if ('users' === $column) {
             $term = get_term($term_id, 'tipocoach');
@@ -206,13 +220,39 @@ class OrionFunctions
     }
 
     /**
+     * Adds Content To The Custom Added Column
+     *
+     * @param [type] $value
+     * @param [type] $column_name
+     * @param [type] $user_id
+     * @return void
+     */
+    public function orion_manage_user_column($value, $column_name, $user_id)
+    {
+        $user = get_userdata($user_id);
+        if ('tipocoach' == $column_name) {
+            $user_terms = wp_get_object_terms($user_id, 'tipocoach');
+
+            if (!empty($user_terms)) {
+                if (!is_wp_error($user_terms)) {
+                    $value .= '<ul>';
+                    foreach ($user_terms as $term) {
+                        $value .= '<li><a href="' . esc_url(get_term_link($term->slug, 'tipocoach')) . '">' . esc_html($term->name) . '</a></li>';
+                    }
+                    $value .= '</ul>';
+                }
+            }
+        }
+        return $value;
+    }
+
+    /**
      * Section taxonomy edit
      * 
      * @param object $user The user object currently being edited.
      */
-    function orion_edit_user_tipocoach_section($user)
+    public function orion_edit_user_tipocoach_section($user)
     {
-        global $pagenow;
         $tax = get_taxonomy('tipocoach');
         /* Make sure the user can assign terms of the tipocoach taxonomy before proceeding. */
         if (!current_user_can($tax->cap->assign_terms))
@@ -222,14 +262,14 @@ class OrionFunctions
         <h3><?php _e('Tipo de coach'); ?></h3>
         <table class="form-table">
             <tr>
-                <th><label for="tipocoach"><?php _e('Allocated Tipo de coach'); ?></label></th>
+                <th><label for="tipocoach"><?php _e('Asignar tipo de coach'); ?></label></th>
                 <td><?php
                     /* If there are any tipocoachs terms, loop through them and display checkboxes. */
                     if (!empty($terms)) {
-                        echo orion_custom_form_field('tipocoach', $terms, $user->ID);
+                        echo OrionFunctions::orion_custom_form_field('tipocoach', $terms, $user->ID);
                     }
                     /* If there are no tipocoach terms, display a message. */ else {
-                        _e('There are no tipocoach available.');
+                        _e('No hay tipocoach disponibles.');
                     }
                     ?></td>
             </tr>
@@ -240,10 +280,16 @@ class OrionFunctions
     /**
      * Return field as dropdown or checkbox, by default checkbox if no field type given
      * 
-     * @param: name = taxonomy, options = terms avaliable, userId = user id to get linked terms
+     * @link https://codebriefly.com/how-to-create-taxonomy-for-users-in-wordpress/#Create_Admin_Page
+     * 
+     * @param string $name The name of taxonomy
+     * @param array $options The terms avaliable
+     * @param int $userId The user id to get linked terms
+     * @param string $type The tipe of elements
      */
-    function orion_custom_form_field($name, $options, $userId, $type = 'checkbox')
+    public static function orion_custom_form_field($name, $options, $userId, $type = 'checkbox')
     {
+        global $pagenow;
         switch ($type) {
             case 'checkbox':
                 foreach ($options as $term) :
@@ -258,23 +304,24 @@ class OrionFunctions
             case 'dropdown':
                 $selectTerms = [];
                 foreach ($options as $term) {
-                    $selectTerms[$term->term_id] = $term->name;
+                    $selectTerms[$term->term_slug] = $term->name;
                 }
 
-                // get all terms linked with the user
-                $usrTerms = get_the_terms($userId, 'tipocoach');
+                // Get all terms linked with the user
+                $usrTerms = get_the_terms($userId, 'tipocoach'); // ¿wp_get_object_terms?
                 $usrTermsArr = [];
                 if (!empty($usrTerms)) {
                     foreach ($usrTerms as $term) {
-                        $usrTermsArr[] = (int) $term->term_id;
+                        $usrTermsArr[] = $term->term_slug;
                     }
                 }
                 // Dropdown
-                echo "<select name='{$name}'>";
+                var_dump($usrTerms);
+                echo "<select name='{$name}' multiple>";
                 echo "<option value=''>-Select-</option>";
-                foreach ($selectTerms as $options_value => $options_label) {
-                    $selected = (in_array($options_value, array_values($usrTermsArr))) ? " selected='selected'" : "";
-                    echo "<option value='{$options_value}' {$selected}>{$options_label}</option>";
+                foreach ($options as $term) {
+                    $selected = (in_array($term->slug, array_values($usrTermsArr))) ? " selected='selected'" : "";
+                    echo "<option value='{$term->slug}' {$selected}>{$term->name}</option>";
                 }
                 echo "</select>";
                 break;
@@ -286,16 +333,20 @@ class OrionFunctions
      * 
      * @param int $user_id The ID of the user to save the terms for.
      */
-    function orion_save_user_department_terms($user_id)
+    public function orion_save_user_tipocoach_terms($user_id)
     {
+        global $wpdb;
         $tax = get_taxonomy('tipocoach');
         /* Make sure the current user can edit the user and assign terms before proceeding. */
         if (!current_user_can('edit_user', $user_id) && current_user_can($tax->cap->assign_terms))
             return false;
-        $term = $_POST['tipocoach'];
-        $terms = is_array($term) ? $term : (int) $term; // fix for checkbox and select input field
+        $terms  = $_POST['tipocoach'];
+        // $terms = is_array($term) ? $term : $term; // fix for checkbox and select input field
         /* Sets the terms (we're just using a single term) for the user. */
         wp_set_object_terms($user_id, $terms, 'tipocoach', false);
+        /* Save into amelia_user table too */
+        $terms_update = json_encode($terms); // maybe_serialize($terms);
+        $wpdb->update($wpdb->prefix . 'amelia_users', array('coach_category_slug' => $terms_update), array('externalId' => $user_id));
         clean_object_term_cache($user_id, 'tipocoach');
     }
 
@@ -304,7 +355,7 @@ class OrionFunctions
      * 
      * @param string $username The username of the user before registration is complete.
      */
-    function orion_disable_tipocoach_username($username)
+    public function orion_disable_tipocoach_username($username)
     {
         if ('tipocoach' === $username)
             $username = '';
@@ -316,7 +367,7 @@ class OrionFunctions
      * 
      * Update parent file name to fix the selected menu issue
      */
-    function cb_change_parent_file($parent_file)
+    public function orion_change_parent_file($parent_file)
     {
         global $submenu_file;
         if (
@@ -335,11 +386,42 @@ class OrionFunctions
      */
     public function orion_plugin_assets()
     {
-        // Make column clickable
+        // Make column clickable.
         wp_register_script('make-column-clickable-elementor', ORION_PLUGIN_DIR_URL . '/assets/js/make-column-clickable.js', array('jquery'), ORION_VERSION, true);
-        // Obfuscate
+        // Obfuscate.
         wp_enqueue_script('orion-ofuscate', ORION_PLUGIN_DIR_URL . '/assets/js/obfuscate.js', array('jquery'), ORION_VERSION, true);
-        // Styles
+        // Styles.
         wp_enqueue_style('orion-styles', ORION_PLUGIN_DIR_URL . "/assets/css/style.css", array(), ORION_VERSION);
+    }
+
+    /**
+     * Update wp table
+     *
+     * @param string $tablename
+     * @param array $NewArray
+     * @param array $WhereArray
+     * @return void
+     */
+    public function orion_update_or_insert($tablename, $NewArray, $WhereArray)
+    {
+        global $wpdb;
+        $arrayNames = array_keys($WhereArray);
+        // Convert array to STRING.
+        $o = '';
+        $i = 1;
+        foreach ($WhereArray as $key => $value) {
+            $o .= $key . ' = \'' . $value . '\'';
+            if ($i != count($WhereArray)) {
+                $o .= ' AND ';
+                $i++;
+            }
+        }
+        // Check if already exist.
+        $CheckIfExists = $wpdb->get_var("SELECT " . $arrayNames[0] . " FROM " . $tablename . " WHERE " . $o);
+        if (!empty($CheckIfExists)) {
+            return $wpdb->update($tablename, $NewArray, $WhereArray);
+        } else {
+            return $wpdb->insert($tablename, array_merge($NewArray, $WhereArray));
+        }
     }
 }
