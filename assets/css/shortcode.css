@@ -49,6 +49,7 @@
     grid-auto-flow: column;
     margin: auto;
     box-sizing: border-box;
+    justify-content: space-evenly;
 }
 
 .item-content p:nth-child(1) {
@@ -89,14 +90,14 @@
 /* Carousel-2 */
 .carousel-type-2 .item {
     width: 280px;
-    height: 320px;
+    height: 327px;
     margin: 5px auto;
 }
 
 .carousel-type-2 .item-content {
     height: 228px;
     text-align: center;
-    padding: 100px 15px 50px;
+    padding: 100px 15px 15px;
     box-shadow: rgb(27 162 247 / 50%) 0px 0px 5px 1px;
 }
 
@@ -109,4 +110,21 @@
     background-position: center;
     border-radius: 100%;
     position: relative;
+}
+
+
+/* Flex list */
+#flex-list .item {
+    width: 280px;
+    text-align: center;
+    box-shadow: rgb(27 162 247 / 50%) 0px 0px 5px 1px;
+    padding: 15px;
+}
+
+#flex-list .item-img {
+    float: left;
+}
+
+#flex-list .item-content p:nth-child(2) {
+    margin: 0 auto;
 }
