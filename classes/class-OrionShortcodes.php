@@ -25,6 +25,11 @@ class OrionShortcodes
     private static $instance;
 
     /**
+     * Taxonomy slug
+     */
+    public $taxonomy = 'tipocoach';
+
+    /**
      * Returns an instance of this class.
      */
     public static function get_instance()
@@ -44,6 +49,10 @@ class OrionShortcodes
     {
         // Add shortcode
         add_shortcode(
+            'employees_filter_list',
+            array($this, 'orion_employees_filter_list_shortcode_handler')
+        );
+        add_shortcode(
             'employees_slider_list',
             array($this, 'orion_employees_slider_list_shortcode_handler')
         );
@@ -51,6 +60,71 @@ class OrionShortcodes
             'employees_flex_list',
             array($this, 'orion_employees_flex_list_shortcode_handler')
         );
+    }
+
+    /**
+     * Register shortcode employees_filter_list
+     */
+    public function orion_employees_filter_list_shortcode_handler()
+    {
+        global $wpdb;
+
+        // Only in shortcode page insert
+        OrionShortcodes::orion_enqueue_front_scripts();
+
+        $tipocoach = (isset($_GET["tipocoaching"])) ? '&tipocoaching=' . $_GET["tipocoaching"] : '';
+        $objetivo  = (isset($_GET["objetivo"])) ? $_GET["objetivo"] : '';
+        $precio    = (isset($_GET["precio"])) ? '&precio=' . $_GET["precio"] : '';
+
+        if ("false" == $objetivo || null === $objetivo) {
+            $args = array(
+                'role'    => 'wpamelia-provider',
+                'orderby' => 'rand'
+            );
+            $coaches   = get_users($args);
+        } else {
+            $term  = get_term_by('slug', $objetivo, $this->taxonomy);
+            $users = get_objects_in_term($term->term_id, $this->taxonomy);
+            $args  = array(
+                'role'    => 'wpamelia-provider',
+                'orderby' => 'rand',
+                'include' => $users
+            );
+            $user_query = new WP_User_Query($args);
+            if (!empty($user_query->results))
+                $coaches = $user_query->results;
+            $objetivo = '&objetivo=' . $objetivo;
+        }
+
+        ob_start();
+
+?>
+        <div id="wrapper">
+            <div id="flex-list">
+                <div id="content">
+                    <?php foreach ($coaches as $coach) : ?>
+                        <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
+                        if (empty($wpamelia_provider)) continue; ?>
+                        <div class="item">
+                            <div class="item-img">
+                                <img src="<?php echo $wpamelia_provider[0]->pictureFullPath; ?>" alt="<?php echo $wpamelia_provider[0]->firstName; ?>">
+                            </div>
+                            <div class="item-content">
+                                <p><?php echo $wpamelia_provider[0]->firstName . ' ' . $wpamelia_provider[0]->lastName; ?></p>
+                                <p><?php echo $wpamelia_provider[0]->description; ?></p>
+                                <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                <a target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php
+
+        $output = ob_get_clean();
+
+        return $output;
     }
 
     /**
@@ -62,19 +136,6 @@ class OrionShortcodes
 
         // Only in shortcode page insert
         OrionShortcodes::orion_enqueue_front_scripts();
-
-        $default = array(
-            'type'     => '1',
-            'category' => 'all'
-        );
-
-        $a   = shortcode_atts($default, $atts);
-        $and = '';
-        if ('all' !== $a['category']) {
-            $and = " AND `coach_category_slug` LIKE '%" . $a['category'] . "%'";
-        }
-
-        $coaches = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' $and");
 
         $buttons = '
             <button id="prev">
@@ -90,6 +151,35 @@ class OrionShortcodes
                 </svg>
             </button>';
 
+
+
+        $default = array(
+            'type'          => '1',
+            'category_slug' => 'all'
+        );
+
+        $a   = shortcode_atts($default, $atts);
+
+        $objetivo = ('all' !== $a['category_slug']) ? $a['category_slug'] : null;
+
+        if ('all' !== $objetivo || null === $objetivo) {
+            $args = array(
+                'role'    => 'wpamelia-provider',
+                'orderby' => 'rand'
+            );
+            $coaches   = get_users($args);
+        } else {
+            $term  = get_term_by('slug', $objetivo, $this->taxonomy);
+            $users = get_objects_in_term($term->term_id, $this->taxonomy);
+            $args  = array(
+                'role'    => 'wpamelia-provider',
+                'orderby' => 'rand',
+                'include' => $users
+            );
+            $user_query = new WP_User_Query($args);
+            if (!empty($user_query->results)) $coaches = $user_query->results;
+        }
+
         ob_start();
 
         // Carousel type 1 and 2.
@@ -98,14 +188,28 @@ class OrionShortcodes
                 <div id="carousel" class="carousel-type-1">
                     <div id="content">
                         <?php foreach ($coaches as $coach) : ?>
+                            <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
+                            if (empty($wpamelia_provider)) continue;
+                            if ('visible' !== $wpamelia_provider[0]->status) continue;
+                            $terms = get_the_terms($coach->ID, $this->taxonomy);
+                            $wpamelia_provider[0]->tipocoaching = (!empty($terms)) ? $terms[0]->slug : '';
+                            // echo '<pre>';
+                            // var_dump($coach);
+                            // echo '</pre>';
+                            // echo '<pre>';
+
+                            // var_dump($wpamelia_provider);
+                            // echo '</pre>'; 
+                            ?>
                             <div class="item">
-                                <div class="item-img" style="background-image: url('<?php echo $coach->pictureFullPath; ?>');">
+                                <div class="item-img" style="background-image: url('<?php echo $wpamelia_provider[0]->pictureFullPath; ?>');">
                                     <span></span>
                                 </div>
                                 <div class="item-content">
-                                    <p><?php echo $coach->firstName . ' ' . $coach->lastName; ?></p>
-                                    <p><?php echo $coach->description; ?></p>
-                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->externalId); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    <p><?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?></p>
+                                    <p><?php echo $wpamelia_provider[0]->description; ?></p>
+                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    <a target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -121,14 +225,17 @@ class OrionShortcodes
                 <div id="carousel" class="carousel-type-2">
                     <div id="content">
                         <?php foreach ($coaches as $coach) : ?>
+                            <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
+                            if (empty($wpamelia_provider)) continue; ?>
                             <div class="item">
-                                <div class="item-img" style="background-image: url('<?php echo $coach->pictureThumbPath; ?>');">
+                                <div class="item-img" style="background-image: url('<?php echo $wpamelia_provider[0]->pictureThumbPath; ?>');">
                                     <span></span>
                                 </div>
                                 <div class="item-content">
-                                    <p><?php echo $coach->firstName . ' ' . $coach->lastName; ?></p>
-                                    <p><?php echo $coach->description; ?></p>
-                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->externalId); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    <p><?php echo $wpamelia_provider[0]->firstName . ' ' . $wpamelia_provider[0]->lastName; ?></p>
+                                    <p><?php echo $wpamelia_provider[0]->description; ?></p>
+                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    <a target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -157,16 +264,30 @@ class OrionShortcodes
         OrionShortcodes::orion_enqueue_front_scripts();
 
         $default = array(
-            'category' => 'all'
+            'category_slug' => 'all'
         );
 
         $a   = shortcode_atts($default, $atts);
-        $and = '';
-        if ('all' !== $a['category']) {
-            $and = " AND `coach_category_slug` LIKE '%" . $a['category'] . "%'";
-        }
 
-        $coaches = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' $and");
+        $objetivo = ('all' !== $a['category_slug']) ? $a['category_slug'] : null;
+
+        if ('all' !== $objetivo || null === $objetivo) {
+            $args = array(
+                'role'    => 'wpamelia-provider',
+                'orderby' => 'rand'
+            );
+            $coaches   = get_users($args);
+        } else {
+            $term  = get_term_by('slug', $objetivo, $this->taxonomy);
+            $users = get_objects_in_term($term->term_id, $this->taxonomy);
+            $args  = array(
+                'role'    => 'wpamelia-provider',
+                'orderby' => 'rand',
+                'include' => $users
+            );
+            $user_query = new WP_User_Query($args);
+            if (!empty($user_query->results)) $coaches = $user_query->results;
+        }
 
         ob_start();
 
@@ -176,14 +297,16 @@ class OrionShortcodes
             <div id="flex-list">
                 <div id="content">
                     <?php foreach ($coaches as $coach) : ?>
+                        <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
+                        if (empty($wpamelia_provider)) continue; ?>
                         <div class="item">
                             <div class="item-img">
-                                <img src="<?php echo $coach->pictureFullPath; ?>" alt="<?php echo $coach->firstName; ?>">
+                                <img src="<?php echo $wpamelia_provider[0]->pictureFullPath; ?>" alt="<?php echo $wpamelia_provider[0]->firstName; ?>">
                             </div>
                             <div class="item-content">
-                                <p><?php echo $coach->firstName . ' ' . $coach->lastName; ?></p>
-                                <p><?php echo $coach->description; ?></p>
-                                <a target="_blank" href="<?php echo get_author_posts_url($coach->externalId); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                <p><?php echo $wpamelia_provider[0]->firstName . ' ' . $wpamelia_provider[0]->lastName; ?></p>
+                                <p><?php echo $wpamelia_provider[0]->description; ?></p>
+                                <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
                             </div>
                         </div>
                     <?php endforeach; ?>

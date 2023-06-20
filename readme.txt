@@ -19,16 +19,11 @@ Plugin de funciones y shortcodes
 
 1. Upload `orionplugin` to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Place `[employees_list slider="true" column="4" categories="all"]` in your templates
+1. Place `[employees_filter_list]` in your templates
+1. Place `[employees_slider_list type="1" category_slug="all"]` in your templates
+1. Place `[employees_flex_list category_slug="all"]` in your templates
 
 == Changelog ==
-
-= 1.1.2 =
-* Update amelia_user table when wp user change
-* Add coaches lists shortcode
-
-= 1.1.1 =
-* Add user taxonomy
 
 = 1.1.0 =
 * Add shortcode parameters
