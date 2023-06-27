@@ -100,20 +100,26 @@ class OrionShortcodes
 
 ?>
         <div id="wrapper">
-            <div id="flex-list">
-                <div id="content">
+            <div id="filter-list">
+                <div class="content">
                     <?php foreach ($coaches as $coach) : ?>
                         <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
                         if (empty($wpamelia_provider)) continue; ?>
                         <div class="item">
-                            <div class="item-img">
-                                <img src="<?php echo $wpamelia_provider[0]->pictureFullPath; ?>" alt="<?php echo $wpamelia_provider[0]->firstName; ?>">
+                            <div class="item-img" style="background-image: url('<?php echo $wpamelia_provider[0]->pictureThumbPath; ?>');">
+                                <span></span>
                             </div>
                             <div class="item-content">
                                 <p><?php echo $wpamelia_provider[0]->firstName . ' ' . $wpamelia_provider[0]->lastName; ?></p>
                                 <p><?php echo $wpamelia_provider[0]->description; ?></p>
-                                <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
-                                <a target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
+                                <div class="item-content--buttons">
+                                    <a class="button-see" target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>">
+                                        <?php _e('See profile', ORION_TEXT_DOMAIN); ?>
+                                    </a>
+                                    <a class="button-reserve" target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>">
+                                        <?php _e('Reserve', ORION_TEXT_DOMAIN); ?>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -185,8 +191,8 @@ class OrionShortcodes
         // Carousel type 1 and 2.
         if ('2' !== $a['type']) { ?>
             <div id="wrapper">
-                <div id="carousel" class="carousel-type-1">
-                    <div id="content">
+                <div id="carousel-type-1" class="carousel">
+                    <div class="content">
                         <?php foreach ($coaches as $coach) : ?>
                             <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
                             if (empty($wpamelia_provider)) continue;
@@ -208,8 +214,8 @@ class OrionShortcodes
                                 <div class="item-content">
                                     <p><?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?></p>
                                     <p><?php echo $wpamelia_provider[0]->description; ?></p>
-                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
-                                    <a target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
+                                    <a class="button-see" target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    <a class="button-reserve" target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -222,8 +228,8 @@ class OrionShortcodes
         } else {
         ?>
             <div id="wrapper">
-                <div id="carousel" class="carousel-type-2">
-                    <div id="content">
+                <div id="carousel-type-2" class="carousel">
+                    <div class="content">
                         <?php foreach ($coaches as $coach) : ?>
                             <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
                             if (empty($wpamelia_provider)) continue; ?>
@@ -234,8 +240,8 @@ class OrionShortcodes
                                 <div class="item-content">
                                     <p><?php echo $wpamelia_provider[0]->firstName . ' ' . $wpamelia_provider[0]->lastName; ?></p>
                                     <p><?php echo $wpamelia_provider[0]->description; ?></p>
-                                    <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
-                                    <a target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
+                                    <a class="button-see" target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                    <a class="button-reserve" target="_blank" href="/pedir-cita-coach/?coach=<?php echo $wpamelia_provider[0]->firstName  . ' ' . $wpamelia_provider[0]->lastName; ?><?php echo $tipocoach; ?><?php echo $precio; ?>"><?php _e('Reserve', ORION_TEXT_DOMAIN); ?></a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -295,18 +301,18 @@ class OrionShortcodes
         ?>
         <div id="wrapper">
             <div id="flex-list">
-                <div id="content">
+                <div class="content">
                     <?php foreach ($coaches as $coach) : ?>
                         <?php $wpamelia_provider = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}amelia_users WHERE type = 'provider' AND externalId = $coach->ID", OBJECT);
                         if (empty($wpamelia_provider)) continue; ?>
                         <div class="item">
                             <div class="item-img">
-                                <img src="<?php echo $wpamelia_provider[0]->pictureFullPath; ?>" alt="<?php echo $wpamelia_provider[0]->firstName; ?>">
+                                <img src="<?php echo $wpamelia_provider[0]->pictureThumbPath; ?>" alt="<?php echo $wpamelia_provider[0]->firstName; ?>">
                             </div>
                             <div class="item-content">
                                 <p><?php echo $wpamelia_provider[0]->firstName . ' ' . $wpamelia_provider[0]->lastName; ?></p>
                                 <p><?php echo $wpamelia_provider[0]->description; ?></p>
-                                <a target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
+                                <a class="button" target="_blank" href="<?php echo get_author_posts_url($coach->ID); ?>"><?php _e('See profile', ORION_TEXT_DOMAIN); ?></a>
                             </div>
                         </div>
                     <?php endforeach; ?>
