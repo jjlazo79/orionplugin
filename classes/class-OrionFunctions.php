@@ -119,6 +119,71 @@ class OrionFunctions
         return $atts;
     }
 
+    /**
+     * Get employed services by userID 
+     *
+     * @param int $userId
+     * @return array
+     * ['price']
+     * ['serviceId']
+     */
+    public static function getUserservicesByUserId($userId)
+    {
+        global $wpdb;
+        $services = $wpdb->prepare("SELECT *
+        FROM {$wpdb->prefix}amelia_providers_to_services AS US
+            JOIN {$wpdb->prefix}amelia_services AS S
+            ON US.serviceId = S.id
+        WHERE US.userId = %d", $userId);
+
+        return $wpdb->get_results($services);
+    }
+
+    /**
+     * Get services by serviceID 
+     *
+     * @param int $userId
+     * @return array
+     * ['name']
+     * ['description']
+     * ['price']
+     * ['categoryId']
+     * ['description']
+     */
+    public static function getServicesByServiceId($serviceID)
+    {
+        global $wpdb;
+        $services = $wpdb->prepare("SELECT * FROM {$wpdb->prefix}amelia_services WHERE id = %d", $serviceID);
+
+        return $wpdb->get_results($services);
+    }
+
+
+
+    /**
+     * Undocumented function
+     *
+     * @param int $Id
+     * @return void
+     */
+    // function getSomeDataBy($Id)
+    // {
+    //     global $wpdb;
+    //     $int_val = 1;
+    //     $float_val = 3.14159;
+
+    //     $prepared_sql = $wpdb->prepare(
+    //         "SELECT * FROM {$wpdb->prefix}some_table WHERE some_column BETWEEN %d AND %f", [
+    //             $int_val,
+    //             $float_val,
+    //         ]
+    //     );
+    // }
+
+
+
+
+
 
 
     /**
@@ -129,10 +194,12 @@ class OrionFunctions
     public function orion_plugin_assets()
     {
         // Make column clickable.
-        wp_register_script('make-column-clickable-elementor', ORION_PLUGIN_DIR_URL . '/assets/js/make-column-clickable.js', array('jquery'), ORION_VERSION, true);
+        wp_register_script('make-column-clickable-elementor', ORION_PLUGIN_DIR_URL . 'assets/js/make-column-clickable.js', array('jquery'), ORION_VERSION, true);
         // Obfuscate.
-        wp_enqueue_script('orion-ofuscate', ORION_PLUGIN_DIR_URL . '/assets/js/obfuscate.js', array('jquery'), ORION_VERSION, true);
+        wp_enqueue_script('orion-ofuscate', ORION_PLUGIN_DIR_URL . 'assets/js/obfuscate.js', array('jquery'), ORION_VERSION, true);
+        // Filters
+        wp_enqueue_script('orion-filters', ORION_PLUGIN_DIR_URL . 'assets/js/filters.js', array('jquery'), ORION_VERSION, true);
         // Styles.
-        // wp_enqueue_style('orion-styles', ORION_PLUGIN_DIR_URL . "/assets/css/style.css", array(), ORION_VERSION);
+        // wp_enqueue_style('orion-styles', ORION_PLUGIN_DIR_URL . "assets/css/style.css", array(), ORION_VERSION);
     }
 }
