@@ -73,6 +73,8 @@ class OrionShortcodes
         OrionShortcodes::orion_enqueue_front_scripts();
 
         $tipocoach = (isset($_GET["tipocoaching"])) ? '&tipocoaching=' . $_GET["tipocoaching"] : '';
+        // SELECT * FROM {$wpdb->prefix}amelia_categories WHERE id = 1 (Coaching individual)
+        // SELECT * FROM {$wpdb->prefix}amelia_categories WHERE id = 3 (Coaching equipos (máx. 8 personas))
         $objetivo  = (isset($_GET["objetivo"])) ? $_GET["objetivo"] : '';
         $precio    = (isset($_GET["precio"])) ? '&precio=' . $_GET["precio"] : '';
 
